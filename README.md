@@ -7,5 +7,8 @@
 ## Setup
 
 * Install python3
-* `pip install flask`
-* `pip install flask-restful`
+* Create and activate virtualenv:
+  `python3 -m virtualenv env`
+  `source env/bin/activate`
+* Install requirements:
+  `pip install -r requirements.txt`
