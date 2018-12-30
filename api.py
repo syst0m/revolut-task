@@ -1,12 +1,43 @@
-import flask
+from flask import Flask
+from flask_restful import Api, Resource, reqparse
 
-app = flask.Flask(__name__)
+app = Flask(__name__)
 app.config["DEBUG"] = True
+api = Api(app)
 
+# test data
 
+users = [
+    {
+    'name':'John',
+    'dateOfBirth':'2000-01-01'
+    }
+]
 
-@app.route('/', methods=['GET'])
-def home():
-    return "<h1>Birthday API</h1><p>This site is an API for storing/retrieving user's birthday information</p>"
+class User(Resource):
+    def get(self, name):
+        for user in users:
+            if(name == user["name"]):
+                return user, 200
+        return "User not found", 404
+
+    def put(self, name):
+        parser = reqparse.RequestParser()
+        parser.add_argument("dateOfBirth")
+        args = parser.parse_args()
+
+        for user in users:
+            if(name == user["name"]):
+                user["dateOfBirth"] = args["dateOfBirth"]
+                return user, 200
+
+        user = {
+            "name": name,
+            "dateOfBirth": args["dateOfBirth"]
+                }
+        users.append(user)
+        return user, 204
+
+api.add_resource(User, "/hello/<string:name>")
 
 app.run()
