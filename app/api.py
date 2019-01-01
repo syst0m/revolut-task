@@ -1,20 +1,23 @@
+import sqlite3
 from flask import Flask
 from flask_restful import Api, Resource, reqparse
 from json import dumps
 from datetime import datetime
 
+# initialize app
 app = Flask(__name__)
 app.config["DEBUG"] = True
 api = Api(app)
 
-# test data
+users = []
 
-users = [
-    {
-    'name':'John',
-    'dateOfBirth':'2000-12-31'
-    }
-]
+# initialize database
+conn = sqlite3.connect('birthday.sqlite')
+cur = conn.cursor()
+cur.execute('CREATE TABLE IF NOT EXISTS users (name VARCHAR, dateOfBirth VARCHAR)')
+conn.commit()
+
+conn.close()
 
 def split_dob(dob):
     b_year = int(dob[0:4])
@@ -52,41 +55,54 @@ class User(Resource):
         parser.add_argument("dateOfBirth")
         args = parser.parse_args()
 
-        for user in users:
-            if(name == user["name"]):
-                dob = user["dateOfBirth"]
-                name = user["name"]
-                bd = split_dob(dob)
-                today = datetime.today()
-                c = calculate_days(bd, today)
-                m = display_message(dob,c,name)
+        #for user in users:
+        #if(name == user["name"]):
+        n = name
+        conn = sqlite3.connect('birthday.sqlite')
+        cur = conn.cursor()
+        cur.execute("SELECT dateOfBirth FROM users WHERE name='{name}'".format(name=n))
+        dob_tuple = cur.fetchone()
+        conn.commit()
+        #dob = user["dateOfBirth"]
+        #name = user["name"]
+        dob =  ''.join(dob_tuple)
+        bd = split_dob(dob)
+        today = datetime.today()
+        c = calculate_days(bd, today)
+        m = display_message(dob,c,name)
+        serialized_message = dumps(m, default=str)
 
-                serialized_message = dumps(m, default=str)
-
-            user = {
-                "name": name,
-                "message": serialized_message
-                }
-            return  user, 200
-        return "User not found", 404
+        user = {
+            "name": name,
+            "message": serialized_message
+        }
+        return  user, 200
+        #return "User not found", 404
 
     def put(self, name):
         parser = reqparse.RequestParser()
         parser.add_argument("dateOfBirth")
         args = parser.parse_args()
 
-        for user in users:
+        '''for user in users:
             if(name == user["name"]):
                 user["dateOfBirth"] = args["dateOfBirth"]
                 return user, 200
-
+        '''
         user = {
             "name": name,
             "dateOfBirth": args["dateOfBirth"]
                 }
+
+        conn = sqlite3.connect('birthday.sqlite')
+        cur = conn.cursor()
+        cur.execute('INSERT INTO users (name,dateOfBirth) VALUES (?, ?)',
+            (user["name"], user["dateOfBirth"]))
+        conn.commit()
+
         users.append(user)
         return user, 204
 
 api.add_resource(User, "/hello/<string:name>")
 
-app.run()
+app.run(host='0.0.0.0')
