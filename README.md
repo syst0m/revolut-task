@@ -1,14 +1,14 @@
+# Birthday API
+
 ## Requirements
+*docker-ce >= 18.06.1~ce~3-0~ubuntu
+*docker-compose >= 1.8.0-2
 
-* python3
-* flask
-* flask-restful
+## Starting the environment
+`docker-compose up`
 
-## Setup
+## Deploying new version
+`./deploy.sh`
 
-* Install python3
-* Create and activate virtualenv:
-  `python3 -m virtualenv env`
-  `source env/bin/activate`
-* Install requirements:
-  `pip install -r requirements.txt`
+## AWS Deplyment Diagram
+![AWS Deployment](https://i.imgur.com/GBR9wUp.png)
